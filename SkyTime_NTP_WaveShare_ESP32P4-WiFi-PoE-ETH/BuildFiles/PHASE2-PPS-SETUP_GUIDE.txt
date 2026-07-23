@@ -1,0 +1,345 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║              PHASE 2: GPS + OLED + PPS DETECTION SETUP                    ║
+║                         SkyTime NTP Server ESP32-P4                       ║
+║                    ATGM336H GPS+BDS Module Integration                    ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+
+HARDWARE REQUIRED
+═════════════════════════════════════════════════════════════════════════════
+
+1. SSD1306 OLED Display (128x64 or 128x32)
+   - I2C Interface
+   - Typical address: 0x3C
+   - Amazon: B0FM7N672Z
+
+2. ATGM336H GPS Module (GPS+BDS Dual-Mode)
+   - Serial UART Interface (9600 baud)
+   - NMEA Output with PPS capability
+   - Amazon: [Your link above]
+
+3. LED Driver Board (WS2812B) - OPTIONAL for Phase 2
+   - For status LEDs (future)
+   - Amazon: B0B3RTC71G
+
+4. Waveshare ESP32-P4-ETH board
+   - Already flashed with Phase 1
+
+
+WIRING CONNECTIONS
+═════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                     SSD1306 OLED Display Wiring                     │
+├─────────────────────────────────────────────────────────────────────┤
+│
+│  OLED Pin    →    ESP32-P4 GPIO      →    Function
+│  ─────────────────────────────────────────────────────────
+│  GND         →    GND                →    Ground
+│  VCC         →    3.3V               →    Power (+3.3V)
+│  SCL         →    GPIO40             →    I2C Clock
+│  SDA         →    GPIO39             →    I2C Data
+│
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                  ATGM336H GPS Module Wiring ★ UPDATED               │
+├─────────────────────────────────────────────────────────────────────┤
+│
+│  GPS Pin     →    ESP32-P4 GPIO      →    Function
+│  ─────────────────────────────────────────────────────────
+│  GND         →    GND                →    Ground
+│  VCC         →    5V (or 3.3V)       →    Power
+│  RX          →    GPIO22             →    Serial TX (from P4)
+│  TX          →    GPIO21             →    Serial RX (to P4) ← MAIN DATA
+│  PPS         →    GPIO1              →    Pulse Per Second ★ NEW!
+│
+│  ATGM336H Typical Pinout:
+│  ┌──────────────────────────┐
+│  │ VCC  RX  TX  GND  (PPS)  │
+│  │  1    2   3   4    5     │  (Check datasheet for your module)
+│  └──────────────────────────┘
+│
+│  NOTE: PPS is a 1Hz pulse synchronized to GPS time
+│        Rising edge on GPIO1 triggers interrupt
+│        Used for Stratum-1 NTP time synchronization
+│
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                     LED Driver Board Wiring                         │
+├─────────────────────────────────────────────────────────────────────┤
+│
+│  LED Pin     →    ESP32-P4 GPIO      →    Function
+│  ─────────────────────────────────────────────────────────
+│  GND         →    GND                →    Ground
+│  +5V         →    5V (from USB)      →    Power
+│  DIN         →    GPIO45             →    Data Line
+│
+│  NOTE: In Phase 2, LED on GPIO45 blinks with each PPS pulse
+│
+└─────────────────────────────────────────────────────────────────────┘
+
+
+PPS (PULSE PER SECOND) EXPLANATION
+═════════════════════════════════════════════════════════════════════════════
+
+What is PPS?
+────────────
+  • A 1-second precision pulse output from the GPS module
+  • Synchronized to UTC time
+  • Rising edge on GPIO1
+  • Used for disciplining system clock to nanosecond precision
+
+Why is PPS important for NTP?
+──────────────────────────────
+  • Allows Stratum-1 NTP servers to achieve microsecond accuracy
+  • GPS provides time data (via NMEA), PPS provides the exact second edge
+  • Critical for precision timing applications
+
+In Phase 2:
+───────────
+  ✓ PPS interrupt handler counts pulses
+  ✓ Displays PPS frequency on OLED (should be ~1Hz)
+  ✓ LED blinks on each PPS pulse (visual indicator)
+  ✓ Serial monitor shows PPS count
+
+In Phase 3:
+───────────
+  → Will use PPS to synchronize system clock to GPS time
+  → Implement proper timestamp capture at rising edge
+  → Prepare for NTP implementation
+
+
+STEP-BY-STEP INSTALLATION
+═════════════════════════════════════════════════════════════════════════════
+
+Step 1: Wire the Hardware ★ UPDATED WITH PPS
+──────────────────────────────────────────────
+  □ Connect OLED display (SDA → GPIO39, SCL → GPIO40)
+  □ Connect GPS module:
+      • RX → GPIO22
+      • TX → GPIO21  ← MAIN GPS DATA
+      • PPS → GPIO1  ← NEW: PPS PULSE INPUT
+  □ Verify all GND and VCC connections
+  □ Check ATGM336H datasheet for pin order
+
+Step 2: Update platformio.ini
+──────────────────────────────
+  □ Use PHASE2-platformio.ini (same as before)
+  □ Contains: TinyGPS++, Adafruit libraries
+  □ Save (Ctrl+S)
+
+Step 3: Update src/main.cpp ★ UPDATED FOR PPS
+────────────────────────────────────────────────
+  □ Open: src/main.cpp
+  □ Replace ALL with: PHASE2-PPS-main.cpp ← NEW VERSION WITH PPS
+  □ Save (Ctrl+S)
+
+Step 4: Clean Build
+────────────────────
+  □ Press: Ctrl+Alt+C (Clean)
+  □ Wait for "Done cleaning" message
+
+Step 5: Build Firmware
+──────────────────────
+  □ Press: Ctrl+Alt+B (Build)
+  □ Expected output:
+    - All libraries found
+    - PPS interrupt handler compiled
+    - [SUCCESS] Took X.XX seconds
+
+Step 6: Upload to Board
+───────────────────────
+  □ Connect ESP32-P4 via USB
+  □ Press: Ctrl+Alt+U (Upload)
+  □ When "Connecting..." appears → Press BOOT button
+  □ Wait for upload complete
+
+Step 7: Monitor Serial Output
+──────────────────────────────
+  □ Press: Ctrl+Alt+M (Monitor)
+  □ Should see startup messages:
+    ╔════════════════════════════════════════╗
+    ║   SkyTime NTP Server - ESP32-P4       ║
+    ║   Phase 2: GPS + OLED + PPS Detection ║
+    ║   GPS-Disciplined Stratum-1 NTP       ║
+    ╚════════════════════════════════════════╝
+    [GPIO] Initializing pins... ✓
+    [I2C] Initializing I2C (SDA:39, SCL:40)... ✓
+    [OLED] Initializing SSD1306 display (0x3C)... ✓
+    [GPS] Initializing GPS UART (RX:21, 9600 baud)... ✓
+    [PPS] Initializing PPS interrupt (GPIO1, rising edge)... ✓
+    Initialization Complete!
+    Waiting for GPS lock and PPS signal...
+
+Step 8: Observe LED Activity
+──────────────────────────────
+  □ LED on GPIO45 should blink with PPS pulses
+  □ Once GPS locks, LED will blink at 1Hz (every second)
+  □ Indicates PPS signal is being detected
+
+Step 9: Monitor PPS on Serial
+──────────────────────────────
+  □ Every 5 seconds, you'll see:
+    [GPS] Locked: YES | Satellites: 12 | Lat: XX.XXXXXX | Lon: XX.XXXXXX | [PPS] Count: 1234 | Freq: 1Hz
+
+  □ PPS Count: Total number of pulses received
+  □ Freq: Pulses per second (should be 1Hz when GPS locked)
+
+Step 10: OLED Display with PPS
+───────────────────────────────
+  □ OLED shows:
+    === GPS [PPS] ===   ← [PPS] means PPS signal detected
+    LOCK: YES  SAT:12
+    Lat: 25.761682
+    Lon: -80.191788
+    Alt: 3.4m
+    14:32:45 UTC PPS:1Hz
+    05/28/2026 PPS:1234
+    ========================
+
+  □ When PPS not detected:
+    === GPS [----] ===  ← [----] means no PPS signal
+
+
+WHAT YOU SHOULD SEE (NORMAL OPERATION)
+═════════════════════════════════════════════════════════════════════════════
+
+Timeline after power-up:
+────────────────────────
+  T+0s:    Board boots, initializes hardware
+  T+5s:    OLED shows startup screen "SkyTime NTP"
+  T+10s:   GPS begins searching for satellites
+  T+20s:   Satellites start appearing, SAT count increases
+  T+30s:   GPS gets 3D fix, LOCK changes to "YES"
+  T+35s:   PPS signal appears, LED starts blinking at 1Hz
+
+OLED Display (GPS locked, PPS detected):
+─────────────────────────────────────────
+=== GPS [PPS] ===
+LOCK: YES  SAT:14
+Lat: 25.761682
+Lon: -80.191788
+Alt: 3.4m
+14:32:45 UTC PPS:1Hz
+05/28/2026 PPS:5432
+========================
+
+Serial Monitor (every 5 seconds):
+─────────────────────────────────
+[GPS] Locked: YES | Satellites: 14 | Lat: 25.761682 | Lon: -80.191788 | [PPS] Count: 5432 | Freq: 1Hz
+[GPS] Locked: YES | Satellites: 14 | Lat: 25.761682 | Lon: -80.191788 | [PPS] Count: 5433 | Freq: 1Hz
+[GPS] Locked: YES | Satellites: 14 | Lat: 25.761682 | Lon: -80.191788 | [PPS] Count: 5434 | Freq: 1Hz
+
+
+TROUBLESHOOTING
+═════════════════════════════════════════════════════════════════════════════
+
+PROBLEM: OLED shows "=== GPS [----] ===" (no PPS)
+──────────────────────────────────────────────────
+  Solution 1: Check GPIO1 wiring from GPS PPS pin
+  Solution 2: Verify PPS pin on your ATGM336H module
+  Solution 3: Check ATGM336H datasheet for correct pin
+  Solution 4: Some modules need external antenna for PPS
+  Solution 5: PPS may not appear until GPS locks
+  Action: Look at serial output, wait for GPS lock first
+
+PROBLEM: GPS locks but PPS doesn't appear after 1 minute
+────────────────────────────────────────────────────────
+  Solution 1: ATGM336H may not output PPS by default
+  Solution 2: Check module configuration via USB cable
+  Solution 3: Enable PPS output in module settings
+  Solution 4: Try different GPIO pin
+  Solution 5: Verify GPS module supports PPS output
+  Action: Check ATGM336H documentation for PPS enable commands
+
+PROBLEM: LED doesn't blink with PPS
+────────────────────────────────────
+  Solution 1: Check GPIO45 wiring for LED
+  Solution 2: LED might be wrong way (try flip polarity)
+  Solution 3: Use oscilloscope to verify GPIO1 has signal
+  Solution 4: GPIO45 might not be high-current enough for LED
+  Action: Connect LED with 330Ω resistor in series
+
+PROBLEM: Build fails with interrupt errors
+───────────────────────────────────────────
+  Solution 1: Verify #include <Arduino.h> is present
+  Solution 2: Check digitalPinToInterrupt() for ESP32
+  Solution 3: GPIO1 valid on ESP32-P4
+  Action: Check Arduino IDE ESP32 documentation
+
+PROBLEM: PPS Count stuck at same value
+──────────────────────────────────────
+  Solution 1: Check GPIO1 wiring
+  Solution 2: ATGM336H not outputting PPS
+  Solution 3: Wrong GPIO pin defined
+  Solution 4: Interrupt not attached properly
+  Action: Add Serial.println to pps_interrupt_handler() for debugging
+
+
+KEY FEATURES IN PHASE 2 WITH PPS
+═════════════════════════════════════════════════════════════════════════════
+
+✓ Real-time GPS NMEA parsing
+✓ OLED display of GPS status
+✓ PPS pulse counting and frequency detection
+✓ LED blinks on each PPS pulse (visual feedback)
+✓ Serial output shows PPS statistics
+✓ Foundation for Phase 3 timestamp capture
+✓ ATGM336H dual-mode (GPS + BDS) support
+
+
+NEXT PHASES
+═════════════════════════════════════════════════════════════════════════════
+
+Phase 3: PPS Timestamp Capture
+  - Microsecond-level timestamp recording at PPS edge
+  - System time synchronization to GPS + PPS
+  - Precision timing foundation
+
+Phase 4: Full NTP Server
+  - NTP packet generation with timestamps
+  - UDP server socket
+  - Stratum-1 configuration
+
+Phase 5: Web Interface & Storage
+  - Ethernet configuration
+  - Web-based settings page
+  - SD card data logging
+
+
+FILES TO USE
+═════════════════════════════════════════════════════════════════════════════
+
+Replace your files with:
+  1. platformio.ini  ← Use PHASE2-platformio.ini
+  2. src/main.cpp    ← Use PHASE2-PPS-main.cpp  ★ NEW WITH PPS
+
+
+QUICK REFERENCE
+═════════════════════════════════════════════════════════════════════════════
+
+GPIO Map (UPDATED):
+  GPIO1:  PPS Input from ATGM336H ★ NEW
+  GPIO21: GPS RX (from ATGM336H TX)
+  GPIO22: GPS TX (to ATGM336H RX) - unused
+  GPIO39: I2C SDA (OLED)
+  GPIO40: I2C SCL (OLED)
+  GPIO45: LED Status (blinks with PPS)
+
+Build:    Ctrl+Alt+B
+Upload:   Ctrl+Alt+U  (then press BOOT button)
+Monitor:  Ctrl+Alt+M
+Clean:    Ctrl+Alt+C
+
+ATGM336H Pinout (typical):
+  Pin 1: VCC (5V or 3.3V)
+  Pin 2: RX (serial from microcontroller)
+  Pin 3: TX (serial to microcontroller) → GPIO21
+  Pin 4: GND
+  Pin 5: PPS (1Hz pulse) → GPIO1
+
+
+Ready for Phase 2 with PPS? 🚀
+Good luck! Let me know if you need help!
