@@ -14,7 +14,7 @@ I enjoy prototyping and experimenting with hardware, so maintaining spare compon
 
 - The board for this project was selected spcifically for it's layout and the addtion of WiFi for intial configuration.
 
-Example: https://a.co/d/0277lPHP
+Example: https://amzn.to/4bbeWpz
 
 ## GPS Receiver
 
@@ -22,15 +22,15 @@ Example: https://a.co/d/0277lPHP
 
 Ensure the selected module provides PPS output.
 
-Example: https://a.co/d/00rtO4z1
+Example: https://amzn.to/4baA9zU
 
 ### U.FL to SMA Female Pigtail
 
-Example: https://a.co/d/0frTrsJL
+Example: https://amzn.to/4fjhILX
 
 ### GPS / GLONASS / BeiDou / Galileo Antenna
 
-Example: https://a.co/d/04vmG3HE
+Example: https://amzn.to/4wX6K4z
 
 ## Display
 
@@ -38,7 +38,7 @@ Example: https://a.co/d/04vmG3HE
 
 The enclosure is designed around landscape orientation.
 
-Example: https://a.co/d/08bvD7NW
+Example: https://amzn.to/4bYGO0h
 
 ## Front Panel Button
 
@@ -51,7 +51,7 @@ The supplied button was modified:
 - The original plastic bridge between the pins was retained.
 - Retaining the bridge improves mechanical stability and maintains proper pin alignment.
 
-Example: https://a.co/d/0cbIuVN0
+Example: https://amzn.to/4wqzjI0
 
 ## Internal Wiring
 
@@ -59,7 +59,7 @@ Example: https://a.co/d/0cbIuVN0
 
 Used to construct the primary wire harness.
 
-Example: https://a.co/d/0bi9Q3br
+Example: https://amzn.to/4ytiLAi
 
 Individual pin housings were bonded together using:
 
@@ -91,7 +91,7 @@ Push Button Branch:
 ## Miscellaneous Materials
 
 - Super glue
-- Kapton tape, 0.5 inch
+- Kapton tape, 0.5 inch  https://amzn.to/4wkMA4M
 - Straight 2.54 mm male pin headers
 - Hot glue
 - Hot glue gun
