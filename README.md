@@ -50,6 +50,6 @@ Version 1.0 Production Release
 Author
 RPMof78
 
-Link to Amazon Parts list: https://www.amazon.com/hz/wishlist/ls/2ZEWX0J5EYLJ1?ref_=wl_share
+Link to Amazon Parts list: (https://www.amazon.com/hz/wishlist/ls/3RGTMPS81QZ9Y?ref_=wl_share)
 
 ======================================================== End of File
